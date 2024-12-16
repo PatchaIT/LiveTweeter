@@ -33,7 +33,7 @@ Hi all,
 For that purpose, a configurable script like LiveTweeter was perfect to face
   this necessity, but it was too dated and needed updating.
 
-You can find the original here:
+You can find the original there:
   [2018 wellbrained and BurnySc2 LiveTweeter script for Streamlabs Chatbot
     (formely Ankhbot)](https://github.com/BurnySc2/Ankhbot-Scripts-DevBranch/tree/master/LiveTweeter).
 
