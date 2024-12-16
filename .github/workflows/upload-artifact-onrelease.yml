@@ -1,0 +1,30 @@
+name: GH Upload Release Asset On Release Publish
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build:
+    name: Upload Release Asset
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      - name: Build Release Asset
+        run: |
+          rsync -Rr --exclude=".*" . ./LiveTweeter
+          zip -r LiveTweeter_${{ github.ref_name }}.zip LiveTweeter
+          rm -r LiveTweeter
+      - name: View Release Asset
+        run: |
+          unzip -l LiveTweeter_${{ github.ref_name }}.zip
+      - name: Upload Release Asset
+        id: upload_release_asset
+        uses: softprops/action-gh-release@v2
+        with:
+          files: LiveTweeter_${{ github.ref_name }}.zip
+      - name: Release Output
+        run: echo "💡 Release available in ${{ steps.upload_release_asset.outputs.url }}"
+      - name: Uploaded Release Assets Output
+        run: echo "💡 Assets available ${{ steps.upload_release_asset.outputs.assets }}"
