@@ -1,3 +1,29 @@
+# TheRenewTTS
+
+[![development status | 7 - inactive](https://img.shields.io/badge/development_status-7_--_inactive-orange)](https://pypi.org/classifiers/)
+[![license: GPL v3](https://img.shields.io/badge/license-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+![release](https://img.shields.io/github/v/release/PatchaIT/LiveTweeter)
+[![next](https://img.shields.io/badge/next-v1.3.5-orange)](https://github.com/PatchaIT/LiveTweeter/tree/LiveTweeter_v1.3.5)
+<!--[![code style: pep-0008](https://img.shields.io/badge/code_style-pep--0008-FFF8FF)](https://peps.python.org/pep-0008/)-->
+
+(On your Streamlabs Chatbot) Tweets when you are going live!.
+
+## Table of Contents
+
+* [About the Project](#about-the-project)
+  * [Warning Notes](#warning-notes)
+* [In Shorts](#in-shorts)
+* [Changelog](#changelog)
+  * [Versions by Wellbrained BurnySc2](#versions-by-wellbrained-burnysc2)
+  * [Versions by Patcha](#versions-by-patcha)
+* [Getting Started](#getting-started)
+  * [Prerequisites](#prerequisites)
+  * [Installation](#installation)
+* [Settings](#settings)
+* [Credits](#credits)
+
+## About The Project
+
 Hi all,
   due to new free API versions and restricting rules on X platform
   (formely Twitter), most auto-tweeting bots stopped supporting such kind of
