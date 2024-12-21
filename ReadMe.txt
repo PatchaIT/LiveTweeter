@@ -24,7 +24,7 @@ Note:
 ## In Shorts
 
 * Script: LiveTweeter
-* Version: 1.4.0
+* Version: 1.4.1
 * Description: Automatically Tweets when going Live
 * Change: Twitter API 2.0 + Channels name management + Delayed tweets
 * Services: Twitch, Youtube
@@ -88,6 +88,8 @@ Note:
       actually sending a new tweet.
     If stream goes offline during countdown, the counter will reset.
       Unless the setted amount of time to result offline will pass meantime.
+* 2024/05/04 v1.4.1
+  * Current time in info logs now have always two digits even for unities.
 
 ## Getting Started
 

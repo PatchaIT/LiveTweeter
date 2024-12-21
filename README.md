@@ -3,7 +3,7 @@
 [![development status | 7 - inactive](https://img.shields.io/badge/development_status-7_--_inactive-orange)](https://pypi.org/classifiers/)
 [![license: GPL v3](https://img.shields.io/badge/license-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 ![release](https://img.shields.io/github/v/release/PatchaIT/LiveTweeter)
-[![next](https://img.shields.io/badge/next-v1.4.1-orange)](https://github.com/PatchaIT/LiveTweeter/tree/LiveTweeter_v1.4.1)
+[![next](https://img.shields.io/badge/next-v1.4.2-orange)](https://github.com/PatchaIT/LiveTweeter/tree/LiveTweeter_v1.4.2)
 <!--[![code style: pep-0008](https://img.shields.io/badge/code_style-pep--0008-FFF8FF)](https://peps.python.org/pep-0008/)-->
 
 (On your Streamlabs Chatbot) Tweets when you are going live!.
@@ -50,7 +50,7 @@ Note:
 ## In Shorts
 
 * Script: LiveTweeter
-* Version: 1.4.0
+* Version: 1.4.1
 * Description: Automatically Tweets when going Live
 * Change: Twitter API 2.0 + Channels name management + Delayed tweets
 * Services: Twitch, Youtube
@@ -114,6 +114,8 @@ Note:
       actually sending a new tweet.
     If stream goes offline during countdown, the counter will reset.
       Unless the setted amount of time to result offline will pass meantime.
+* 2024/05/04 v1.4.1
+  * Current time in info logs now have always two digits even for unities.
 
 ## Getting Started
 
