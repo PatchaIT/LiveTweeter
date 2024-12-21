@@ -16,7 +16,7 @@ ScriptName = "LiveTweeter"
 Website = "https://burnysc2.github.io" #Old
 Description = "Tweet when going live"
 Creator = "Burny & Brain & Patcha" # API v2.0
-Version = "1.4" # API v2.0 (Login with API 1.1)
+Version = "1.4.1" # API v2.0 (Login with API 1.1)
 
 configFile = "settings.json"
 settings = {
@@ -454,7 +454,7 @@ def encodeBlueprint(data, level=6):
 
 def getCurrentDayTime():
     now = time.localtime()
-    return str(now.tm_hour) + ":" + str(now.tm_min) + ":" + str(now.tm_sec)
+    return str(now.tm_hour).rjust(2, '0') + ":" + str(now.tm_min).rjust(2, '0') + ":" + str(now.tm_sec).rjust(2, '0')
 
 #---------------------------------------
 # BUTTONS
