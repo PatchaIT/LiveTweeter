@@ -1,4 +1,4 @@
-# TheRenewTTS
+# LiveTweeter
 
 [![development status | 6 - mature](https://img.shields.io/badge/development_status-6_--_mature-green)](https://pypi.org/classifiers/)
 [![license: GPL v3](https://img.shields.io/badge/license-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
