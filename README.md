@@ -3,7 +3,7 @@
 [![development status | 7 - inactive](https://img.shields.io/badge/development_status-7_--_inactive-orange)](https://pypi.org/classifiers/)
 [![license: GPL v3](https://img.shields.io/badge/license-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 ![release](https://img.shields.io/github/v/release/PatchaIT/LiveTweeter)
-[![next](https://img.shields.io/badge/next-v1.4.0-orange)](https://github.com/PatchaIT/LiveTweeter/tree/LiveTweeter_v1.4.0)
+[![next](https://img.shields.io/badge/next-v1.4.1-orange)](https://github.com/PatchaIT/LiveTweeter/tree/LiveTweeter_v1.4.1)
 <!--[![code style: pep-0008](https://img.shields.io/badge/code_style-pep--0008-FFF8FF)](https://peps.python.org/pep-0008/)-->
 
 (On your Streamlabs Chatbot) Tweets when you are going live!.
@@ -50,13 +50,13 @@ Note:
 ## In Shorts
 
 * Script: LiveTweeter
-* Version: 1.3.5
+* Version: 1.4.0
 * Description: Automatically Tweets when going Live
-* Change: Supports Twitter API v2.0 Free Endpoints, with API v1.1 login
+* Change: Twitter API 2.0 + Channels name management + Delayed tweets
 * Services: Twitch, Youtube
 * Overlays: None
 * Made by: @BuRny, @Brain
-* Edited by: @Patcha_it (from 1.3.5)
+* Updated by: @Patcha_it
 
 ## Changelog
 
@@ -100,6 +100,20 @@ Note:
   * Supports Twitter API v2.0 Free Endpoints, with API v1.1 login
   * (optional) enter your Streaming Channel Name, as workaround for BOT issue on retrieving Channel Name by itself sometimes
   * (optional) enter your Twitter Channel Name, as workaround for Twitter Free API v2.0 limits or errors
+* 2024/04/28 v1.4.0
+  * Channels name options moved in a dedicated options section
+  * (optional) option to force using the Streaming Channel Name setted into
+      options, without trying to get it at runtime
+  * (optional) option to force using the Twitter Channel Name setted into
+      options, without trying to get it via API
+  * Added a button which allows to reset current saved Twitter Channel Name
+    (in case you changed it or if you prefer to use the one you just
+      setted into options)
+  * Added current time to info logs
+  * Added an option to make script wait a certain amount of second before
+      actually sending a new tweet.
+    If stream goes offline during countdown, the counter will reset.
+      Unless the setted amount of time to result offline will pass meantime.
 
 ## Getting Started
 

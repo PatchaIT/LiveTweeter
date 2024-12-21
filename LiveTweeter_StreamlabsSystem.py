@@ -13,10 +13,10 @@ import sys, base64, zlib, collections
 #    [Required]    Script Information
 #---------------------------------------
 ScriptName = "LiveTweeter"
-Website = "https://burnysc2.github.io"
+Website = "https://burnysc2.github.io" #Old
 Description = "Tweet when going live"
-Creator = "Burny & Brain & Patcha" ### API v2.0
-Version = "1.3.5" ### API v2.0 (Login with API 1.1)
+Creator = "Burny & Brain & Patcha" # API v2.0
+Version = "1.4" # API v2.0 (Login with API 1.1)
 
 configFile = "settings.json"
 settings = {
@@ -29,6 +29,7 @@ scriptData = {
     "timestampLiveSince": 0,
     "timestampOfflineSince": 0,
     "timestampTweetSent": 0, # info for periodic
+    "twitterUsername": "",
     # for "tweet on game change"
     "lastGameChangeCheck": 0,
     "lastGameName": "",
@@ -44,8 +45,9 @@ scriptData = {
 
 def Init():
     global settings, tweetData
-    global TWITCH_CHANNEL_NAME ### Workaround for BOT issue
-    global TWITTER_CHANNEL_NAME ### Workaround for Twitter Free API limits
+    global TWITCH_CHANNEL_NAME # Workaround for BOT issue
+    global TWITTER_CHANNEL_NAME # Workaround for Twitter Free API limits
+    global eventTrigged, typeTrigged, timeTrigged, offTrigged
 
     path = os.path.dirname(__file__)
     try:
@@ -55,12 +57,25 @@ def Init():
     except:
         return
 
-    ### Workaround for BOT issue
-    TWITCH_CHANNEL_NAME = Parent.GetChannelName()
-    if not isinstance(TWITCH_CHANNEL_NAME, str):
-        TWITCH_CHANNEL_NAME = settings["txtTwitchChannelName"]
+    if "sliderNewTweetWaiting" not in settings:
+        settings["sliderNewTweetWaiting"] = 0;
+    eventTrigged = False
+    typeTrigged = "normal"
+    timeTrigged = time.time()
 
-    ### Workaround for Twitter Free API limits
+    # Workaround for BOT issue
+    if "cbTwitchChannelName" in settings and settings["cbTwitchChannelName"] \
+            and "txtTwitchChannelName" in settings and settings["txtTwitchChannelName"]:
+        TWITCH_CHANNEL_NAME = settings["txtTwitchChannelName"]
+    else:
+        TWITCH_CHANNEL_NAME = Parent.GetChannelName()
+        if not isinstance(TWITCH_CHANNEL_NAME, str):
+            if "txtTwitchChannelName" in settings:
+                TWITCH_CHANNEL_NAME = settings["txtTwitchChannelName"]
+            else:
+                TWITCH_CHANNEL_NAME = ""
+
+    # Workaround for Twitter Free API limits
     TWITTER_CHANNEL_NAME = None
 
     tweetData = {
@@ -131,15 +146,24 @@ def ScriptToggled(state):
 #---------------------------------------
 def Tick():
     global scriptData, settings, TWITTER_CHANNEL_NAME
+    global eventTrigged, typeTrigged, timeTrigged, offTrigged
 
     if settings["successfullyLoaded"] and settings["cbTweetWhenGoingLive"]:
-        ### Workaround for Twitter Free API limits
+        # Workaround for Twitter Free API limits
         # getting twitter user name
         if TWITTER_CHANNEL_NAME is None:
             TWITTER_CHANNEL_NAME = getTwitterChannelInfo()
             handleScriptData(execType="save")
 
         if Parent.IsLive():
+
+            # if planned tweet was waiting some time offline, but wasn't cancelled,
+            # (aka: it didn't reach its time "to be intended as new stream" while offline)
+            # its trigger time will be resetted, to restart waiting the "new tweet waiting option" seconds
+            if eventTrigged and offTrigged:
+                if settings["cbLoggingToScriptLogs"]:
+                    Parent.Log("LiveTweeter", getCurrentDayTime() + " > Back live: will try to send new initial stream start tweet, after around " + str(settings["sliderNewTweetWaiting"]) + " seconds.")
+                trigTweet(tweetType = typeTrigged)
 
             # sending tweet info to chat
             if settings["cbPostMsgMultipleTimes"]:
@@ -150,13 +174,13 @@ def Tick():
                     handleScriptData(execType="save")
                     Parent.SendStreamMessage(scriptData["twitchMsg"])
 
-            # sending automated tweet
+            # trig automated tweet
             if time.time() - scriptData["timestampOfflineSince"] > settings["sliderNewTweetAfterBreak"] * 60:
                 if settings["cbLoggingToScriptLogs"]:
-                    Parent.Log("LiveTweeter", "Trying to send new initial stream start tweet.")
-                sendTweet(tweetType = "normal")
+                    Parent.Log("LiveTweeter", getCurrentDayTime() + " > Will try to send new initial stream start tweet, after around " + str(settings["sliderNewTweetWaiting"]) + " seconds.")
+                trigTweet(tweetType = "normal")
 
-            # send tweet on game change, checks every 5 minutes
+            # trig tweet on game change, checks every 5 minutes
             if settings["cbSendNewTweetOnGameChange"] and time.time() - scriptData["lastGameChangeCheck"] > 5 * 60:
                 scriptData["lastGameChangeCheck"] = time.time()
                 jsonData = json.loads(Parent.GetRequest("https://decapi.me/twitch/game/" + TWITCH_CHANNEL_NAME, {}))
@@ -164,15 +188,22 @@ def Tick():
                     currentGameName = jsonData["response"]
                     if scriptData["lastGameName"] != currentGameName:
                         if settings["cbLoggingToScriptLogs"]:
-                            Parent.Log("LiveTweeter", "Trying to send new tweet, game change detected from {} to {}.".format(scriptData["lastGameName"], currentGameName))
+                            Parent.Log("LiveTweeter", getCurrentDayTime() + " > Will try to send new tweet, after around " + str(settings["sliderNewTweetWaiting"]) + " seconds, game change detected from {} to {}.".format(scriptData["lastGameName"], currentGameName))
                         scriptData["lastGameName"] = currentGameName
-                        sendTweet(tweetType = "gameChange")
+                        trigTweet(tweetType = "gameChange")
 
-            # sending periodic tweet
+            # trig periodic tweet
             if settings["cbPeriodicTweeting"] and time.time() - scriptData["timestampTweetSent"] > settings["sliderPeriodicTweetInterval"] * 60 :
                 if settings["cbLoggingToScriptLogs"]:
-                    Parent.Log("LiveTweeter", "Trying to send new periodic tweet.")
+                    Parent.Log("LiveTweeter", getCurrentDayTime() + " > Trying to send new periodic tweet, immediately.")
                 sendTweet(tweetType = "periodic")
+
+            # send planned tweet if "trigger time plus new tweet waiting" time was reached
+            if eventTrigged and timeTrigged + settings["sliderNewTweetWaiting"] <= time.time():
+                eventTrigged = False
+                if settings["cbLoggingToScriptLogs"]:
+                    Parent.Log("LiveTweeter", getCurrentDayTime() + " > Now trying sendind new tweet, after around " + str(settings["sliderNewTweetWaiting"]) + " seconds passed.")
+                sendTweet(tweetType = typeTrigged)
 
             scriptData["timestampOfflineSince"] = time.time()
         else:
@@ -180,6 +211,26 @@ def Tick():
             scriptData["timestampLiveSince"] = time.time()
             scriptData["notificationsInChatRemaining"] = 0
 
+            # cancel the old planned tweet if stream was offline enough "to be intended as new stream"
+            if eventTrigged and timeTrigged + settings["sliderNewTweetAfterBreak"] * 60 <= time.time():
+                if settings["cbLoggingToScriptLogs"]:
+                    Parent.Log("LiveTweeter", getCurrentDayTime() + " > Offline for " + str(settings["sliderNewTweetWaiting"]) + " minutes already : when you'll be back live it will count as a new streaming.")
+                eventTrigged = False
+
+            # else, I mark the eventually planned tweet as being waiting while offline
+            elif eventTrigged and not offTrigged:
+                if settings["cbLoggingToScriptLogs"]:
+                    Parent.Log("LiveTweeter", getCurrentDayTime() + " > Suddenly offline: will try to send a new initial stream start tweet when back live and after around " + str(settings["sliderNewTweetWaiting"]) + " additional seconds.")
+                offTrigged = True
+
+    return
+
+def trigTweet(tweetType="normal"):
+    global eventTrigged, typeTrigged, timeTrigged, offTrigged
+    eventTrigged = True
+    offTrigged = False
+    typeTrigged = tweetType
+    timeTrigged = time.time()
     return
 
 def sendTweet(tweetType="normal"):
@@ -197,7 +248,7 @@ def sendTweet(tweetType="normal"):
 
             if tweetData["tweetText"] == "Default Test Tweet":
                 # dont tweet a default text
-                Parent.Log("LiveTweeter", "You left the default text in the text file - Tweet has not been sent.")
+                Parent.Log("LiveTweeter", getCurrentDayTime() + "You left the default text in the text file - Tweet has not been sent.")
                 return
 
             scriptData["timestampTweetSent"] = time.time()
@@ -214,7 +265,7 @@ def sendTweet(tweetType="normal"):
                 tweetData["tweetText"] = tweetData["periodicTweetText"]
             else:
                 # tweet type not detected
-                Parent.Log("LiveTweeter", "Tweet type hasn't been detected.")
+                Parent.Log("LiveTweeter", getCurrentDayTime() + "Tweet type hasn't been detected.")
                 return
 
 
@@ -230,31 +281,30 @@ def sendTweet(tweetType="normal"):
                 if jsonData["status"] == 200:
                     tweetData["tweetText"] = tweetData["tweetText"].replace("$title", jsonData["response"])
                 else:
-                    Parent.Log("LiveTweeter", "Script was not able to replace $title with the stream title. Status code: {}".format(jsonData["status"]))
+                    Parent.Log("LiveTweeter", getCurrentDayTime() + "Script was not able to replace $title with the stream title. Status code: {}".format(jsonData["status"]))
+
             # Replace $game with current set game - only available on twitch
             jsonData = json.loads(Parent.GetRequest("https://decapi.me/twitch/game/" + TWITCH_CHANNEL_NAME, {}))
-
-            # if "$game" in tweetData["tweetText"] or settings["cbSendNewTweetOnGameChange"]:
             if jsonData["status"] == 200:
                 scriptData["lastGameName"] = jsonData["response"]
                 tweetData["tweetText"] = tweetData["tweetText"].replace("$game", jsonData["response"])
             else:
-                Parent.Log("LiveTweeter", "Script was not able to replace $game with the game name. Status code: {}".format(jsonData["status"]))
+                Parent.Log("LiveTweeter", getCurrentDayTime() + "Script was not able to replace $game with the game name. Status code: {}".format(jsonData["status"]))
 
-
+            # Cutting exceeding text
             tweetData["tweetText"] = tweetData["tweetText"][:280]
 
             # send new tweet
             tweetData["action"] = "SendTweet"
-            tweetData["url"] = "https://api.twitter.com/2/tweets" ### API v2.0
+            tweetData["url"] = "https://api.twitter.com/2/tweets" # API v2.0
             response = launchExternalScript(tweetData["pathPython"], tweetData["pathScript"], tweetData)
-            if response["statusCode"] != 200 and response["statusCode"] != 201: ### API v2.0
+            if response["statusCode"] != 200 and response["statusCode"] != 201: # API v2.0
                 # something went wrong, see bot script log
                 return
 
             # if checkbox enabled to link tweet in chat:
             if settings["cbPostTweetInChat"] and tweetType == "normal":
-                tweetUrl = "https://twitter.com/{}/status/{}".format(TWITTER_CHANNEL_NAME, response["data"]["id"]) ### API v2.0
+                tweetUrl = "https://twitter.com/{}/status/{}".format(TWITTER_CHANNEL_NAME, response["data"]["id"]) # API v2.0
                 string = settings["txtTweetLinkInChat"].replace("$tweetUrl", tweetUrl)
                 scriptData["twitchMsg"] = string[:490]
                 scriptData["messageInChatTimestamp"] = time.time()
@@ -270,16 +320,16 @@ def launchExternalScript(pathPythonExe, pathExternalScript, data={}):
     global scriptData, settings
 
     if not os.path.isfile(pathPythonExe):
-        Parent.Log("LiveTweeter", "Please check your python path! Tweet has not been sent.")
+        Parent.Log("LiveTweeter", getCurrentDayTime() + "Please check your python path! Tweet has not been sent.")
         return {"statusCode": -1}
 
     # not really necessary but just in case
     if not os.path.isfile(pathExternalScript):
-        Parent.Log("LiveTweeter", "Something is wrong with the path to the external python script!")
+        Parent.Log("LiveTweeter", getCurrentDayTime() + "Something is wrong with the path to the external python script!")
         return {"statusCode": -1}
 
     if not all([len(data[x]) > 0 for x in ["consumer_key", "consumer_secret", "access_token", "access_token_secret"]]):
-        Parent.Log("LiveTweeter", "One of your 4 key fields is empty! Tweet has not been sent.")
+        Parent.Log("LiveTweeter", getCurrentDayTime() + "One of your 4 key fields is empty! Tweet has not been sent.")
         return {"statusCode": -1}
 
     encodedData = encodeBlueprint(data)
@@ -295,12 +345,12 @@ def launchExternalScript(pathPythonExe, pathExternalScript, data={}):
 
     if response["scriptStatus"] == "Success":
         if data["action"] == "SendTweet":
-            scriptData["lastTweetId"] = response["data"]["id"] ### API v2.0
+            scriptData["lastTweetId"] = response["data"]["id"] # API v2.0
             if settings["cbLoggingToScriptLogs"]:
                 if TWITTER_CHANNEL_NAME:
-                    Parent.Log("LiveTweeter", "Tweet was successfully sent for twitter account @{}".format(TWITTER_CHANNEL_NAME)) ### API v2.0
+                    Parent.Log("LiveTweeter", getCurrentDayTime() + " > Tweet was successfully sent for twitter account @{}".format(TWITTER_CHANNEL_NAME)) # API v2.0
                 else:
-                    Parent.Log("LiveTweeter", "Tweet was successfully sent") ### API v2.0
+                    Parent.Log("LiveTweeter", getCurrentDayTime() + " > Tweet was successfully sent") # API v2.0
 
     elif response["scriptStatus"] == "Error":
         if response["statusCode"] == 404:
@@ -314,8 +364,8 @@ def launchExternalScript(pathPythonExe, pathExternalScript, data={}):
         elif response["statusCode"] == -4:
             message = "Error while {}: Some unknown error occured, error message: {}".format(errorMessage, response["statusText"])
         else:
-            message = "Unknown error while {}: status code {}, status reason {}".format(errorMessage, response["statusCode"], response["statusText"]) ### API v2.0
-        Parent.Log("LiveTweeter", "{}".format(message))
+            message = "Unknown error while {}: status code {}, status reason {}".format(errorMessage, response["statusCode"], response["statusText"]) # API v2.0
+        Parent.Log("LiveTweeter", getCurrentDayTime() + "{}".format(message))
 
     return response
 
@@ -337,7 +387,7 @@ def handleScriptData(execType = "save"):
                 except:
                     pass
 
-    # TODO: still need to implement (old note, pre-1.2.0)
+    # TODO: still need to implement (old note from v1.2.0)
     # removes the data files when stream is offline, e.g. info about when the last tweet was sent etc.
     elif execType == "remove":
         if os.path.isfile(pathScriptDataJson):
@@ -364,17 +414,27 @@ def loadTweetTextFile(textFile = "normal"):
                 tweetData["onGameChangeTweetText"] = f.read().rstrip("\n")
 
 
-### Workaround for Twitter Free API limits
+# Workaround for Twitter Free API limits
 def getTwitterChannelInfo():
-    if "twitterUsername" not in scriptData or not scriptData["twitterUsername"]:
-        tweetData["action"] = "GetInfo"
-        tweetData["url"] = "https://api.twitter.com/2/users/me"
-        response = launchExternalScript(tweetData["pathPython"], tweetData["pathScript"], tweetData)
+    global scriptData, settings, TWITTER_CHANNEL_NAME
 
-        if response["statusCode"] != 200 and response["statusCode"] != 201 and not response["data"]["username"]:
-            scriptData["twitterUsername"] = settings["txtTwitterChannelName"]
-        else:
-            scriptData["twitterUsername"] = response["data"]["username"]
+    if "cbTwitterChannelName" in settings and settings["cbTwitterChannelName"] \
+            and "txtTwitterChannelName" in settings and settings["txtTwitterChannelName"]:
+        TWITTER_CHANNEL_NAME = settings["txtTwitterChannelName"]
+
+    else:
+        if "twitterUsername" not in scriptData or not scriptData["twitterUsername"]:
+            tweetData["action"] = "GetInfo"
+            tweetData["url"] = "https://api.twitter.com/2/users/me"
+            response = launchExternalScript(tweetData["pathPython"], tweetData["pathScript"], tweetData)
+
+            if response["statusCode"] != 200 and response["statusCode"] != 201 and not response["data"]["username"]:
+                if "txtTwitterChannelName" in settings:
+                    scriptData["twitterUsername"] = settings["txtTwitterChannelName"]
+                else:
+                    scriptData["twitterUsername"] = ""
+            else:
+                scriptData["twitterUsername"] = response["data"]["username"]
 
     return scriptData["twitterUsername"]
 
@@ -392,6 +452,10 @@ def encodeBlueprint(data, level=6):
     blueprintString = base64.b64encode(encoded)
     return "0" + blueprintString
 
+def getCurrentDayTime():
+    now = time.localtime()
+    return str(now.tm_hour) + ":" + str(now.tm_min) + ":" + str(now.tm_sec)
+
 #---------------------------------------
 # BUTTONS
 #---------------------------------------
@@ -401,9 +465,9 @@ def OpenTwitterApp():
 def btnInstallPipRequets():
     global settings
     if os.path.isfile(settings['txtPathPython']):
-        os.system("cmd /k \"{}\" -m pip install requests==2.18.4 requests_oauthlib==1.3.1".format(settings['txtPathPython'])) ### python 2.7 compatibility
+        os.system("cmd /k \"{}\" -m pip install requests==2.18.4 requests_oauthlib==1.3.1".format(settings['txtPathPython'])) # python 2.7 compatibility
     else:
-        Parent.Log("LiveTweeter", "Could not execute \"Install pip requests\". Please double check your entered python path.")
+        Parent.Log("LiveTweeter", getCurrentDayTime() + "Could not execute \"Install pip requests\". Please double check your entered python path.")
 
 def btnOpenReadme():
     location = os.path.join(os.path.dirname(__file__), "README.txt")
@@ -432,7 +496,16 @@ def btnOpenTweetPeriodicFile():
         os.startfile(location)
     return
 
+def btnResetTwitterChannelName():
+    global scriptData, TWITTER_CHANNEL_NAME
+    scriptData["twitterUsername"] = ""
+    TWITTER_CHANNEL_NAME = getTwitterChannelInfo()
+    handleScriptData(execType="save")
+    return
+
 def btnSendTweet():
-    if scriptData["scriptEnabled"]:
+    if settings["successfullyLoaded"] and scriptData["scriptEnabled"]:
+        if settings and "cbLoggingToScriptLogs" in settings and settings["cbLoggingToScriptLogs"]:
+            Parent.Log("LiveTweeter", getCurrentDayTime() + " > Trying to send new manual requested tweet, immediately.")
         sendTweet()
     return

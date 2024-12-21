@@ -38,6 +38,16 @@
         "wsevent": "",
         "group": ""
     },
+    "sliderNewTweetWaiting": {
+        "type": "slider",
+        "label": "Waiting timer (seconds)",
+        "value": 0,
+        "min": 0,
+        "max": 1800,
+        "ticks": 10,
+        "tooltip": "How long does it waits at least (indicatively) before posting a new Tweet?\nDoesn't count when you click \"Send Tweet Manually\" button and on Periodic tweets (if you setted any).\nIf \"On Game Change\" triggers, remember it could take up to 5 minutes more: the time needed by the script to notice the game is changed.",
+        "group": ""
+    },
     "sliderNewTweetAfterBreak": {
         "type": "slider",
         "label": "Offline timer (minutes)",
@@ -53,14 +63,36 @@
         "value": "",
         "label": "Twitch Channel Name",
         "tooltip": "This will be used only as workaround in case the ChatBot fails to retrieve the Channel Name by itself.",
-        "group": ""
+        "group": "Channel names"
+    },
+    "cbTwitchChannelName": {
+        "type": "checkbox",
+        "value": false,
+        "label": "Force this Twitch channel name",
+        "tooltip": "If this is checked, the above Twitch Channel Name will be always used (if you setted any).\nThis means the script will not try to get Channel Name from chatbot runtime libraries.",
+        "group": "Channel names"
     },
     "txtTwitterChannelName": {
         "type": "textbox",
         "value": "",
         "label": "Twitter Channel Name",
         "tooltip": "This will be used only as workaround in case your Twitch user details are unreachable via API.",
-        "group": ""
+        "group": "Channel names"
+    },
+    "cbTwitterChannelName": {
+        "type": "checkbox",
+        "value": false,
+        "label": "Force this Twitter channel name",
+        "tooltip": "If this is checked, the above Twitter Channel Name will be always used (if you setted any).\nThis means the script will not try to get Channel Name from Twitter Free API.",
+        "group": "Channel names"
+    },
+    "resetTwitterChannelName": {
+        "type": "button",
+        "label": "Reset Twitch Channel Name",
+        "tooltip": "Delete current saved Twitch Channel Name and tries to get a new one.",
+        "function": "btnResetTwitterChannelName",
+        "wsevent": "",
+        "group": "Channel names"
     },
     "cbPostTweetInChat": {
         "type": "checkbox",
