@@ -73,4 +73,3 @@ if __name__ == "__main__":
         print(encodeBlueprint(response))
 
     sys.exit(0)
-

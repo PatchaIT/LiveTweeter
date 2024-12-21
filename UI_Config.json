@@ -30,6 +30,13 @@
         "tooltip": "This textfield can be used inside the TweetMessage.txt as '$message' parameter. Simply for quick usage.",
         "group": ""
     },
+    "cbTweetContent": {
+        "type": "checkbox",
+        "value": true,
+        "label": "Enable Optional textfield",
+        "tooltip": "This enable Optional Textfield from Tweet File option. If this is not checked, the '$message' parameter into Tweet File will be replaced with nothing.",
+        "group": ""
+    },
     "sendTweet": {
         "type": "button",
         "label": "Send Tweet manually",
@@ -61,38 +68,52 @@
     "txtTwitchChannelName": {
         "type": "textbox",
         "value": "",
-        "label": "Twitch Channel Name",
+        "label": "Streaming Channel Name",
         "tooltip": "This will be used only as workaround in case the ChatBot fails to retrieve the Channel Name by itself.",
-        "group": "Channel names"
+        "group": "Optional workarounds"
     },
     "cbTwitchChannelName": {
         "type": "checkbox",
         "value": false,
-        "label": "Force this Twitch channel name",
-        "tooltip": "If this is checked, the above Twitch Channel Name will be always used (if you setted any).\nThis means the script will not try to get Channel Name from chatbot runtime libraries.",
-        "group": "Channel names"
+        "label": "Force Streaming Channel Name",
+        "tooltip": "If this is checked, the above Streaming Channel Name will be always used (if you setted any).\nThis means the script will not try to get Channel Name from chatbot runtime libraries.",
+        "group": "Optional workarounds"
+    },
+    "txtGenericStreamName": {
+        "type": "textbox",
+        "value": "a fantastic livestream",
+        "label": "Generic livestream title",
+        "tooltip": "This sentence will be used as title into your tweet only if no Streaming Channel Name was found.\nWhich mean you left the Streaming Channel Name empty and the script didn't succeed to get it from chatbot on runtime.",
+        "group": "Optional workarounds"
+    },
+    "txtGenericGameName": {
+        "type": "textbox",
+        "value": "a fantastic game",
+        "label": "Generic game name",
+        "tooltip": "This sentence will be used as game name into your tweet only if no Streaming Channel Name was found.\nWhich mean you left the Streaming Channel Name empty and the script didn't succeed to get it from chatbot on runtime.",
+        "group": "Optional workarounds"
     },
     "txtTwitterChannelName": {
         "type": "textbox",
         "value": "",
         "label": "Twitter Channel Name",
-        "tooltip": "This will be used only as workaround in case your Twitch user details are unreachable via API.",
-        "group": "Channel names"
+        "tooltip": "This will be used only as workaround in case your Twitter user details are unreachable via API.",
+        "group": "Optional workarounds"
     },
     "cbTwitterChannelName": {
         "type": "checkbox",
         "value": false,
-        "label": "Force this Twitter channel name",
+        "label": "Force Twitter Channel Name",
         "tooltip": "If this is checked, the above Twitter Channel Name will be always used (if you setted any).\nThis means the script will not try to get Channel Name from Twitter Free API.",
-        "group": "Channel names"
+        "group": "Optional workarounds"
     },
     "resetTwitterChannelName": {
         "type": "button",
         "label": "Reset Twitch Channel Name",
-        "tooltip": "Delete current saved Twitch Channel Name and tries to get a new one.",
+        "tooltip": "Delete current saved Twitch Channel Name from memory and tries to get a new one.",
         "function": "btnResetTwitterChannelName",
         "wsevent": "",
-        "group": "Channel names"
+        "group": "Optional workarounds"
     },
     "cbPostTweetInChat": {
         "type": "checkbox",
