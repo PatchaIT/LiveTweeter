@@ -29,15 +29,15 @@ if __name__ == "__main__":
     tweetData = decodeBlueprint(encodedTweetData)
 
 
-    ### API v2.0 updates made only for SendTweet and RemoveTweet action
-    ### Login as for API v1.1 still works
+    # API v2.0 updates made only for SendTweet and RemoveTweet action
+    # Login as for API v1.1 still works
     auth = OAuth1(
         tweetData["consumer_key"].strip(),
         tweetData["consumer_secret"].strip(),
         tweetData["access_token"].strip(),
         tweetData["access_token_secret"].strip())
 
-    ### API v2.0 (with Free API you can pratically do only these 3 actions)
+    # API v2.0 (with Free API you can pratically do only these 3 actions)
     if tweetData["action"] == "SendTweet":
         # i.e.: https://api.twitter.com/2/tweets
         r = requests.post(tweetData["url"], auth=auth, json={"text": tweetData["tweetText"]})
@@ -49,17 +49,17 @@ if __name__ == "__main__":
         r = requests.get(tweetData["url"], auth=auth)
 
     try:
-        if r.status_code == 200 or r.status_code == 201: ### API v2.0
+        if r.status_code == 200 or r.status_code == 201: # API v2.0
             response = r.json()
             response["scriptStatus"] = "Success"
             response["statusCode"] = r.status_code
-            response["statusText"] = r.reason ### API v2.0
+            response["statusText"] = r.reason # API v2.0
             print(encodeBlueprint(response))
         else:
             response = {
                 "scriptStatus": "Error",
                 "statusCode": r.status_code,
-                "statusText": r.reason, ### API v2.0
+                "statusText": r.reason, # API v2.0
             }
             print(encodeBlueprint(response))
     except Exception as e:
